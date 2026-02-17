@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>吐槽吧 - 释放你的吐槽能量</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* 隐藏滚动条但保留功能 */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        /* 页面容器 */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+        
+        .page.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 头部样式 */
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+            color: white;
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(255,107,53,0.3);
+        }
+        
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .header-icon {
+            font-size: 24px;
+        }
+        
+        /* 标签切换 */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 56px;
+            z-index: 99;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .tab.active {
+            color: #FF6B35;
+            font-weight: 600;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 3px;
+            background: #FF6B35;
+            border-radius: 3px;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background: white;
+            margin: 10px;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        /* 今日热槽 */
+        .hot-topic {
+            background: linear-gradient(135deg, #ff6b35 0%, #feca57 100%);
+            color: white;
+            margin: 10px;
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hot-topic::before {
+            content: '🔥';
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            font-size: 80px;
+            opacity: 0.2;
+        }
+        
+        .hot-topic h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .hot-topic p {
+            font-size: 14px;
+            opacity: 0.95;
+            line-height: 1.5;
+        }
+        
+        .heat-level {
+            display: inline-flex;
+            gap: 3px;
+            margin-top: 10px;
+        }
+        
+        .fire-icon {
+            color: #FFD93D;
+            font-size: 16px;
+        }
+        
+        /* 聚集地列表 */
+        .hub-list {
+            padding: 10px;
+        }
+        
+        .hub-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .hub-item:active {
+            transform: scale(0.98);
+        }
+        
+        .hub-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            background: #f0f0f0;
+        }
+        
+        .hub-info {
+            flex: 1;
+        }
+        
+        .hub-name {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .hub-desc {
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .hub-meta {
+            text-align: right;
+        }
+        
+        .hub-count {
+            font-size: 12px;
+            color: #FF6B35;
+            font-weight: 600;
+        }
+        
+        .hub-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #fff0eb;
+            color: #FF6B35;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        
+        /* 帖子样式 */
+        .post {
+            background: white;
+            margin: 10px;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .post-meta {
+            flex: 1;
+        }
+        
+        .username {
+            font-weight: 600;
+            font-size: 15px;
+            color: #333;
+        }
+        
+        .user-tag {
+            display: inline-block;
+            padding: 1px 6px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #666;
+            margin-left: 6px;
+        }
+        
+        .post-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+        
+        .post-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        
+        .post-images {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+        
+        .post-img {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f0f0f0;
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding-top: 12px;
+            border-top: 1px solid #f5f5f5;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #666;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .action-btn:active {
+            background: #f5f5f5;
+        }
+        
+        .action-btn.active {
+            color: #FF6B35;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            color: #999;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-item.active {
+            color: #FF6B35;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        /* 发布按钮 */
+        .fab {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 28px;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.4);
+            cursor: pointer;
+            z-index: 999;
+            transition: transform 0.3s;
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-height: 90vh;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .close-btn {
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-btn:active {
+            background: #f5f5f5;
+        }
+        
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+        
+        .form-textarea {
+            resize: none;
+            min-height: 120px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .radio-item {
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .radio-item.selected {
+            background: #FF6B35;
+            color: white;
+            border-color: #FF6B35;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn-primary:active {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+        
+        /* 用户资料页 */
+        .profile-header {
+            background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);
+            color: white;
+            padding: 40px 20px 30px;
+            text-align: center;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+        }
+        
+        .profile-name {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .profile-bio {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .profile-menu {
+            padding: 10px;
+        }
+        
+        .menu-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        
+        .menu-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+        }
+        
+        .menu-icon {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        /* 正能量专区特殊样式 */
+        .positive-card {
+            background: linear-gradient(135deg, #00D9C0 0%, #00b894 100%);
+            color: white;
+        }
+        
+        .positive-card .hub-tag {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        /* 提示消息 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            z-index: 3000;
+            display: none;
+        }
+        
+        .toast.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .empty-text {
+            font-size: 15px;
+        }
+        
+        /* 评论输入框 */
+        .comment-input-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 15px;
+            border-top: 1px solid #eee;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1500;
+        }
+        
+        .comment-input-bar.active {
+            display: flex;
+        }
+        
+        .comment-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .send-btn {
+            color: #FF6B35;
+            font-weight: 600;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 首页 -->
+    <div class="page active" id="page-home">
+        <div class="header">
+            <h1><span class="header-icon">💥</span>吐槽吧</h1>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('hot')">🔥 今日热槽</div>
+            <div class="tab" onclick="switchTab('hubs')">🏟️ 槽点广场</div>
+            <div class="tab" onclick="switchTab('positive')">✨ 闪光时刻</div>
+        </div>
+        
+        <!-- 今日热槽内容 -->
+        <div id="tab-hot" class="tab-content">
+            <div class="hot-topic" onclick="enterHub('hot-1')">
+                <h3>🔥 调休制度吐槽大会</h3>
+                <p>本周连上7天班，大家的怨气比鬼还重！进来一起发泄...</p>
+                <div class="heat-level">
+                    <span class="fire-icon">🔥</span>
+                    <span class="fire-icon">🔥</span>
+                    <span class="fire-icon">🔥</span>
+                    <span style="margin-left: 8px; font-size: 13px;">12.5w 人正在槽</span>
+                </div>
+            </div>
+            
+            <div class="hot-topic" style="background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);" onclick="enterHub('hot-2')">
+                <h3>📱 iPhone 16 真机体验</h3>
+                <p>创新不够，颜色来凑？首批用户真实反馈，值不值得买？</p>
+                <div class="heat-level">
+                    <span class="fire-icon">🔥</span>
+                    <span class="fire-icon">🔥</span>
+                    <span style="margin-left: 8px; font-size: 13px;">8.3w 人正在槽</span>
+                </div>
+            </div>
+            
+            <div class="hot-topic" style="background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);" onclick="enterHub('hot-3')">
+                <h3>🍱 外卖越来越贵</h3>
+                <p>满减越来越少，配送费越来越贵，打工人的午餐何去何从？</p>
+                <div class="heat-level">
+                    <span class="fire-icon">🔥</span>
+                    <span class="fire-icon">🔥</span>
+                    <span class="fire-icon">🔥</span>
+                    <span style="margin-left: 8px; font-size: 13px;">15.2w 人正在槽</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 槽点广场内容 -->
+        <div id="tab-hubs" class="tab-content" style="display:none;">
+            <div class="hub-list">
+                <div class="hub-item" onclick="enterHub('work')">
+                    <div class="hub-icon" style="background: #fff3e0;">💼</div>
+                    <div class="hub-info">
+                        <div class="hub-name">职场吐槽联盟 <span class="hub-tag">🔥 火爆</span></div>
+                        <div class="hub-desc">老板画饼、同事甩锅、加班无止境...</div>
+                    </div>
+                    <div class="hub-meta">
+                        <div class="hub-count">45.2w</div>
+                        <div style="font-size: 11px; color: #999;">人参与</div>
+                    </div>
+                </div>
+                
+                <div class="hub-item" onclick="enterHub('love')">
+                    <div class="hub-icon" style="background: #fce4ec;">💔</div>
+                    <div class="hub-info">
+                        <div class="hub-name">恋爱脑康复中心 <span class="hub-tag">💬 活跃</span></div>
+                        <div class="hub-desc">渣男渣女事迹曝光，恋爱避坑指南</div>
+                    </div>
+                    <div class="hub-meta">
+                        <div class="hub-count">32.8w</div>
+                        <div style="font-size: 11px; color: #999;">人参与</div>
+                    </div>
+                </div>
+                
+                <div class="hub-item" onclick="enterHub('rent')">
+                    <div class="hub-icon" style="background: #e3f2fd;">🏠</div>
+                    <div class="hub-info">
+                        <div class="hub-name">租房避坑大本营</div>
+                        <div class="hub-desc">黑心房东、奇葩室友、隐藏费用...</div>
+                    </div>
+                    <div class="hub-meta">
+                        <div class="hub-count">28.5w</div>
+                        <div style="font-size: 11px; color: #999;">人参与</div>
+                    </div>
+                </div>
+                
+                <div class="hub-item" onclick="enterHub('traffic')">
+                    <div class="hub-icon" style="background: #f3e5f5;">🚇</div>
+                    <div class="hub-info">
+                        <div class="hub-name">通勤地狱实录</div>
+                        <div class="hub-desc">地铁挤成饼，堵车堵到疯</div>
+                    </div>
+                    <div class="hub-meta">
+                        <div class="hub-count">19.6w</div>
+                        <div style="font-size: 11px; color: #999;">人参与</div>
+                    </div>
+                </div>
+                
+                <div class="hub-item" onclick="enterHub('game')">
+                    <div class="hub-icon" style="background: #e8f5e9;">🎮</div>
+                    <div class="hub-info">
+                        <div class="hub-name">游戏队友吐槽局</div>
+                        <div class="hub-desc">猪队友、外挂狗、匹配机制...</div>
+                    </div>
+                    <div class="hub-meta">
+                        <div class="hub-count">41.3w</div>
+                        <div style="font-size: 11px; color: #999;">人参与</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 闪光时刻内容 -->
+        <div id="tab-positive" class="tab-content" style="display:none;">
+            <div style="padding: 15px; text-align: center; color: #00b894; font-size: 14px; margin-bottom: 10px;">
+                ✨ 发现生活中的小确幸，传递正能量
+            </div>
+            
+            <div class="hub-item positive-card" onclick="enterHub('kind')">
+                <div class="hub-icon" style="background: rgba(255,255,255,0.3);">❤️</div>
+                <div class="hub-info">
+                    <div class="hub-name">人间温暖收集站 <span class="hub-tag">❤️ 感动</span></div>
+                    <div class="hub-desc">陌生人的善意，总让人热泪盈眶</div>
+                </div>
+                <div class="hub-meta">
+                    <div class="hub-count" style="color: white;">12.5w</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.8);">人参与</div>
+                </div>
+            </div>
+            
+            <div class="hub-item" style="background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); color: white;" onclick="enterHub('growth')">
+                <div class="hub-icon" style="background: rgba(255,255,255,0.3);">🌱</div>
+                <div class="hub-info">
+                    <div class="hub-name">成长励志加油站</div>
+                    <div class="hub-desc" style="color: rgba(255,255,255,0.9);">考研上岸、减肥成功、技能get</div>
+                </div>
+                <div class="hub-meta">
+                    <div class="hub-count" style="color: white;">8.9w</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.8);">人参与</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 帖子列表页（聚集地内） -->
+    <div class="page" id="page-posts">
+        <div class="header">
+            <h1 onclick="backToHome()" style="cursor: pointer;">← <span id="current-hub-name">槽点广场</span></h1>
+        </div>
+        <div id="posts-container"></div>
+    </div>
+    
+    <!-- 消息页 -->
+    <div class="page" id="page-msg">
+        <div class="header">
+            <h1>💬 消息</h1>
+        </div>
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <div class="empty-text">暂无新消息<br>去吐槽吧，收获共鸣！</div>
+        </div>
+    </div>
+    
+    <!-- 我的页面 -->
+    <div class="page" id="page-me">
+        <div class="profile-header">
+            <div class="profile-avatar" id="user-avatar">🤠</div>
+            <div class="profile-name" id="user-name">点击设置资料</div>
+            <div class="profile-bio" id="user-bio">还没有个性签名...</div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="user-posts">0</div>
+                    <div class="stat-label">吐槽</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="user-likes">0</div>
+                    <div class="stat-label">获赞</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="user-level">Lv.1</div>
+                    <div class="stat-label">等级</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-menu">
+            <div class="menu-item" onclick="openProfileEdit()">
+                <div class="menu-item-left">
+                    <span class="menu-icon">✏️</span>
+                    <span>编辑资料</span>
+                </div>
+                <span style="color: #ccc;">></span>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-left">
+                    <span class="menu-icon">⭐</span>
+                    <span>我的收藏</span>
+                </div>
+                <span style="color: #ccc;">></span>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-left">
+                    <span class="menu-icon">🏅</span>
+                    <span>我的成就</span>
+                </div>
+                <span style="color: #ccc;">></span>
+            </div>
+            <div class="menu-item">
+                <div class="menu-item-left">
+                    <span class="menu-icon">⚙️</span>
+                    <span>设置</span>
+                </div>
+                <span style="color: #ccc;">></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchPage('home')">
+            <span class="nav-icon">🏠</span>
+            <span>首页</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('msg')">
+            <span class="nav-icon">💬</span>
+            <span>消息</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('me')">
+            <span class="nav-icon">👤</span>
+            <span>我的</span>
+        </div>
+    </div>
+    
+    <!-- 发布按钮 -->
+    <div class="fab" onclick="openPublish()" id="fab-btn">+</div>
+    
+    <!-- 发布弹窗 -->
+    <div class="modal" id="publish-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">发布吐槽</span>
+                <span class="close-btn" onclick="closeModal('publish-modal')">×</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">选择聚集地</label>
+                <select class="form-input" id="publish-hub">
+                    <option value="work">💼 职场吐槽联盟</option>
+                    <option value="love">💔 恋爱脑康复中心</option>
+                    <option value="rent">🏠 租房避坑大本营</option>
+                    <option value="traffic">🚇 通勤地狱实录</option>
+                    <option value="game">🎮 游戏队友吐槽局</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">吐槽内容</label>
+                <textarea class="form-textarea" id="publish-content" placeholder="有什么不爽的？说出来让大家开心一下..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">添加图片（可选）</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="width: 80px; height: 80px; border: 2px dashed #ddd; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 24px;">+</div>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="publishPost()">发布</button>
+        </div>
+    </div>
+    
+    <!-- 编辑资料弹窗 -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">完善资料</span>
+                <span class="close-btn" onclick="closeModal('profile-modal')">×</span>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">昵称</label>
+                <input type="text" class="form-input" id="edit-name" placeholder="取个有趣的昵称">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">性别</label>
+                <div class="radio-group">
+                    <span class="radio-item" onclick="selectGender(this, '男')">👨 男</span>
+                    <span class="radio-item" onclick="selectGender(this, '女')">👩 女</span>
+                    <span class="radio-item" onclick="selectGender(this, '保密')">㊙️ 保密</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">年龄段</label>
+                <div class="radio-group">
+                    <span class="radio-item" onclick="selectAge(this, '00后')">00后</span>
+                    <span class="radio-item" onclick="selectAge(this, '95后')">95后</span>
+                    <span class="radio-item" onclick="selectAge(this, '90后')">90后</span>
+                    <span class="radio-item" onclick="selectAge(this, '85后')">85后</span>
+                    <span class="radio-item" onclick="selectAge(this, '其他')">其他</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">个性签名</label>
+                <input type="text" class="form-input" id="edit-bio" placeholder="展示你的吐槽风格">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">吐槽身份标签</label>
+                <div class="radio-group">
+                    <span class="radio-item" onclick="selectTag(this, '职场老油条')">职场老油条</span>
+                    <span class="radio-item" onclick="selectTag(this, '恋爱脑分析师')">恋爱脑分析师</span>
+                    <span class="radio-item" onclick="selectTag(this, '社会观察员')">社会观察员</span>
+                    <span class="radio-item" onclick="selectTag(this, '毒舌评论家')">毒舌评论家</span>
+                </div>
+            </div>
+            
+            <button class="btn-primary" onclick="saveProfile()">保存</button>
+        </div>
+    </div>
+    
+    <!-- 评论输入栏 -->
+    <div class="comment-input-bar" id="comment-bar">
+        <input type="text" class="comment-input" placeholder="写下你的评论..." id="comment-input">
+        <span class="send-btn" onclick="sendComment()">发送</span>
+    </div>
+    
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 数据存储
+        let userData = JSON.parse(localStorage.getItem('tucaoba_user')) || {
+            name: '',
+            gender: '',
+            age: '',
+            bio: '',
+            tag: '',
+            posts: 0,
+            likes: 0,
+            level: 1
+        };
+        
+        let posts = JSON.parse(localStorage.getItem('tucaoba_posts')) || [
+            {
+                id: 1,
+                hub: 'work',
+                author: '打工人小李',
+                avatar: '👨‍💼',
+                tag: '职场老油条',
+                content: '老板刚才又说"公司不养闲人"，我看了看工资条，心想公司也不配养忙人啊！😤',
+                time: '10分钟前',
+                likes: 128,
+                comments: 45,
+                liked: false
+            },
+            {
+                id: 2,
+                hub: 'work',
+                author: '匿名用户',
+                avatar: '🎭',
+                tag: '社畜本畜',
+                content: '年会要求每个部门出节目，我们部门准备表演《消失的年终奖》，老板看完脸都绿了🎭',
+                time: '30分钟前',
+                likes: 256,
+                comments: 89,
+                liked: false
+            },
+            {
+                id: 3,
+                hub: 'love',
+                author: '清醒姐',
+                avatar: '👸',
+                tag: '恋爱脑分析师',
+                content: '前男友说"我配不上你"的时候，我差点就信了，后来才发现他是配不上我的智商😏',
+                time: '1小时前',
+                likes: 342,
+                comments: 67,
+                liked: false
+            }
+        ];
+        
+        let currentHub = '';
+        let selectedGender = '';
+        let selectedAge = '';
+        let selectedTag = '';
+        
+        // 初始化
+        window.onload = function() {
+            updateUserDisplay();
+            if (!userData.name) {
+                setTimeout(() => openProfileEdit(), 500);
+            }
+        };
+        
+        // 切换页面
+        function switchPage(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // 控制发布按钮显示
+            document.getElementById('fab-btn').style.display = 
+                (page === 'home') ? 'flex' : 'none';
+        }
+        
+        // 切换标签
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById('tab-' + tab).style.display = 'block';
+        }
+        
+        // 进入聚集地
+        function enterHub(hubId) {
+            currentHub = hubId;
+            const hubNames = {
+                'work': '职场吐槽联盟',
+                'love': '恋爱脑康复中心',
+                'rent': '租房避坑大本营',
+                'traffic': '通勤地狱实录',
+                'game': '游戏队友吐槽局',
+                'hot-1': '调休制度吐槽大会',
+                'hot-2': 'iPhone 16 真机体验',
+                'hot-3': '外卖越来越贵',
+                'kind': '人间温暖收集站',
+                'growth': '成长励志加油站'
+            };
+            
+            document.getElementById('current-hub-name').textContent = hubNames[hubId] || '槽点广场';
+            document.getElementById('page-home').classList.remove('active');
+            document.getElementById('page-posts').classList.add('active');
+            document.getElementById('fab-btn').style.display = 'flex';
+            
+            renderPosts(hubId);
+        }
+        
+        // 返回首页
+        function backToHome() {
+            document.getElementById('page-posts').classList.remove('active');
+            document.getElementById('page-home').classList.add('active');
+            document.getElementById('fab-btn').style.display = 'flex';
+        }
+        
+        // 渲染帖子
+        function renderPosts(hubId) {
+            const container = document.getElementById('posts-container');
+            const hubPosts = posts.filter(p => p.hub === hubId || hubId.startsWith('hot'));
+            
+            if (hubPosts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <div class="empty-text">还没有吐槽<br>来做第一个吐槽的人吧！</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = hubPosts.map(post => `
+                <div class="post">
+                    <div class="post-header">
+                        <div class="avatar">${post.avatar}</div>
+                        <div class="post-meta">
+                            <div class="username">${post.author} <span class="user-tag">${post.tag}</span></div>
+                            <div class="post-time">${post.time}</div>
+                        </div>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-actions">
+                        <div class="action-btn ${post.liked ? 'active' : ''}" onclick="toggleLike(${post.id})">
+                            <span>${post.liked ? '❤️' : '🤍'}</span>
+                            <span>${post.likes}</span>
+                        </div>
+                        <div class="action-btn" onclick="showCommentBar(${post.id})">
+                            <span>💬</span>
+                            <span>${post.comments}</span>
+                        </div>
+                        <div class="action-btn">
+                            <span>↗️</span>
+                            <span>分享</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 点赞功能
+        function toggleLike(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (post) {
+                post.liked = !post.liked;
+                post.likes += post.liked ? 1 : -1;
+                localStorage.setItem('tucaoba_posts', JSON.stringify(posts));
+                renderPosts(currentHub);
+                
+                if (post.liked) {
+                    userData.likes++;
+                    updateUserDisplay();
+                }
+            }
+        }
+        
+        // 打开发布弹窗
+        function openPublish() {
+            if (!userData.name) {
+                showToast('请先完善个人资料');
+                openProfileEdit();
+                return;
+            }
+            document.getElementById('publish-modal').classList.add('active');
+        }
+        
+        // 打开编辑资料
+        function openProfileEdit() {
+            document.getElementById('profile-modal').classList.add('active');
+            if (userData.name) {
+                document.getElementById('edit-name').value = userData.name;
+                document.getElementById('edit-bio').value = userData.bio;
+            }
+        }
+        
+        // 关闭弹窗
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        // 选择性别
+        function selectGender(el, gender) {
+            document.querySelectorAll('#profile-modal .radio-group:first-of-type .radio-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedGender = gender;
+        }
+        
+        // 选择年龄
+        function selectAge(el, age) {
+            el.parentElement.querySelectorAll('.radio-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAge = age;
+        }
+        
+        // 选择标签
+        function selectTag(el, tag) {
+            el.parentElement.querySelectorAll('.radio-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTag = tag;
+        }
+        
+        // 保存资料
+        function saveProfile() {
+            const name = document.getElementById('edit-name').value.trim();
+            const bio = document.getElementById('edit-bio').value.trim();
+            
+            if (!name) {
+                showToast('请输入昵称');
+                return;
+            }
+            if (!selectedGender) {
+                showToast('请选择性别');
+                return;
+            }
+            if (!selectedAge) {
+                showToast('请选择年龄段');
+                return;
+            }
+            
+            userData.name = name;
+            userData.gender = selectedGender;
+            userData.age = selectedAge;
+            userData.bio = bio || '这个人很懒，什么都没写';
+            userData.tag = selectedTag || '吐槽新手';
+            
+            localStorage.setItem('tucaoba_user', JSON.stringify(userData));
+            updateUserDisplay();
+            closeModal('profile-modal');
+            showToast('资料保存成功！');
+        }
+        
+        // 更新用户显示
+        function updateUserDisplay() {
+            document.getElementById('user-name').textContent = userData.name || '点击设置资料';
+            document.getElementById('user-bio').textContent = userData.bio || '还没有个性签名...';
+            document.getElementById('user-posts').textContent = userData.posts;
+            document.getElementById('user-likes').textContent = userData.likes;
+            document.getElementById('user-level').textContent = 'Lv.' + userData.level;
+        }
+        
+        // 发布帖子
+        function publishPost() {
+            const content = document.getElementById('publish-content').value.trim();
+            const hub = document.getElementById('publish-hub').value;
+            
+            if (!content) {
+                showToast('请输入吐槽内容');
+                return;
+            }
+            
+            const newPost = {
+                id: Date.now(),
+                hub: hub,
+                author: userData.name,
+                avatar: userData.gender === '男' ? '👨' : userData.gender === '女' ? '👩' : '🤠',
+                tag: userData.tag,
+                content: content,
+                time: '刚刚',
+                likes: 0,
+                comments: 0,
+                liked: false
+            };
+            
+            posts.unshift(newPost);
+            localStorage.setItem('tucaoba_posts', JSON.stringify(posts));
+            
+            userData.posts++;
+            userData.level = Math.floor(userData.posts / 5) + 1;
+            localStorage.setItem('tucaoba_user', JSON.stringify(userData));
+            updateUserDisplay();
+            
+            document.getElementById('publish-content').value = '';
+            closeModal('publish-modal');
+            showToast('发布成功！');
+            
+            // 如果当前在对应聚集地，刷新列表
+            if (currentHub === hub) {
+                renderPosts(hub);
+            }
+        }
+        
+        // 显示评论栏
+        function showCommentBar(postId) {
+            document.getElementById('comment-bar').classList.add('active');
+            document.getElementById('comment-input').focus();
+        }
+        
+        // 发送评论
+        function sendComment() {
+            const input = document.getElementById('comment-input');
+            if (input.value.trim()) {
+                showToast('评论成功');
+                input.value = '';
+                document.getElementById('comment-bar').classList.remove('active');
+            }
+        }
+        
+        // 显示提示
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        // 点击遮罩关闭弹窗
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
